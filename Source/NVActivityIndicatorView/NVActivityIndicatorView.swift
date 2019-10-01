@@ -433,7 +433,13 @@ public final class NVActivityIndicatorView: UIView {
     }
 
     /// Color of activity indicator view.
-    @IBInspectable public var color: UIColor = NVActivityIndicatorView.DEFAULT_COLOR
+    @IBInspectable public var color: UIColor {
+        get { return colorProvider.activityIndicatorColor(type: type, size: frame.size, padding: padding) }
+        set { colorProvider = UIColorProvider(newValue) }
+    }
+    
+    /// Actual resolver of activity indicator view color
+    public var colorProvider: NVActivityIndicatorColorProvider = UIColorProvider(NVActivityIndicatorView.DEFAULT_COLOR)
 
     /// Padding of activity indicator view.
     @IBInspectable public var padding: CGFloat = NVActivityIndicatorView.DEFAULT_PADDING
@@ -471,11 +477,30 @@ public final class NVActivityIndicatorView: UIView {
 
      - returns: The activity indicator view.
      */
-    public init(frame: CGRect, type: NVActivityIndicatorType? = nil, color: UIColor? = nil, padding: CGFloat? = nil) {
+    public convenience init(frame: CGRect, type: NVActivityIndicatorType? = nil, color: UIColor? = nil, padding: CGFloat? = nil) {
+        self.init(frame: frame, type: type,
+                  colorProvider: UIColorProvider(color ?? NVActivityIndicatorView.DEFAULT_COLOR),
+                  padding: padding)
+    }
+    
+    /**
+     Create a activity indicator view.
+
+     Appropriate NVActivityIndicatorView.DEFAULT_* values are used for omitted params.
+
+     - parameter frame:   view's frame.
+     - parameter type:    animation type.
+     - parameter colorProvider: actual resolver of activity indicator view color.
+     - parameter padding: padding of activity indicator view.
+
+     - returns: The activity indicator view.
+     */
+    public init(frame: CGRect, type: NVActivityIndicatorType? = nil,
+                colorProvider: NVActivityIndicatorColorProvider?, padding: CGFloat? = nil) {
         self.type = type ?? NVActivityIndicatorView.DEFAULT_TYPE
-        self.color = color ?? NVActivityIndicatorView.DEFAULT_COLOR
         self.padding = padding ?? NVActivityIndicatorView.DEFAULT_PADDING
         super.init(frame: frame)
+        self.colorProvider = colorProvider ?? self.colorProvider
         isHidden = true
     }
 
@@ -556,6 +581,7 @@ public final class NVActivityIndicatorView: UIView {
 
         layer.sublayers = nil
         animationRect.size = CGSize(width: minEdge, height: minEdge)
+        let color = colorProvider.activityIndicatorColor(type: type, size: frame.size, padding: padding)
         animation.setUpAnimation(in: layer, size: animationRect.size, color: color)
     }
 }
